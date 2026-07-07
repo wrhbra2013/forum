@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fórum Respostas - Comunidade Colaborativa</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+
+<section class="hero">
+  <div class="container">
+    <h1>Tire suas dúvidas, compartilhe conhecimento</h1>
+    <p>Comunidade colaborativa onde você pergunta, responde e ajuda outros usuários. A melhor resposta é destacada por categoria!</p>
+    <div class="hero-buttons">
+      <a href="/nova-pergunta.html" class="btn btn-white"><i class="fas fa-pen"></i> Fazer uma Pergunta</a>
+      <a href="/perguntas.html" class="btn btn-ghost"><i class="fas fa-search"></i> Explorar Perguntas</a>
+    </div>
+  </div>
+</section>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="container">
+
+  <section>
+    <h2 class="section-title"><i class="fas fa-star"></i> Destaques por Categoria</h2>
+    <div class="destaques-grid" id="destaquesGrid"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title"><i class="fas fa-th-large"></i> Categorias</h2>
+    <div class="category-grid" id="categoryGrid"></div>
+  </section>
+
+  <section>
+    <h2 class="section-title"><i class="fas fa-clock"></i> Perguntas Recentes</h2>
+    <div class="question-list" id="recentQuestions"></div>
+    <div style="text-align:center;margin-top:16px">
+      <a href="/perguntas.html" class="btn btn-outline">Ver Todas as Perguntas <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+function carregarHome() {
+  // Stats
+  window.go('GET', '/dashboard', null, function(r) {
+    if (!r) return;
+    var bar = document.getElementById('statsBar');
+    bar.innerHTML = [
+      { icon: 'question-circle', label: 'Perguntas', value: r.total_perguntas },
+      { icon: 'reply', label: 'Respostas', value: r.total_respostas },
+      { icon: 'users', label: 'Usuários', value: r.total_usuarios },
+      { icon: 'check-circle', label: 'Resolvidas', value: r.melhores_respostas || 0 }
+    ].map(function(s) {
+      return '<div class="stat-card"><div class="stat-icon"><i class="fas fa-' + s.icon + '"></i></div><div class="stat-number">' + s.value + '</div><div class="stat-label">' + s.label + '</div></div>';
+    }).join('');
+  });
+
+  // Destaques
+  window.go('GET', '/dashboard', null, function(r) {
+    if (!r || !r.destaques || r.destaques.length === 0) {
+      document.getElementById('destaquesGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-star"></i><h3>Nenhum destaque ainda</h3><p>Quando uma pergunta tiver uma melhor resposta escolhida, ela aparecerá aqui.</p></div>';
+      return;
+    }
+    document.getElementById('destaquesGrid').innerHTML = r.destaques.map(function(d) {
+      return '<div class="destaque-card">' +
+        '<div class="destaque-header"><i class="fas fa-' + (d.categoria_icone || 'star') + '"></i> ' + window.esc(d.categoria_nome) + ' em destaque</div>' +
+        '<div class="destaque-body">' +
+        '<div class="destaque-meta">' +
+        '<img src="' + window.imgUrl(d.autor_avatar) + '" alt="">' +
+        '<span>' + window.esc(d.autor_nome) + '</span>' +
+        '<span>·</span>' +
+        '<span>' + window.fmtDate(d.created_at) + '</span>' +
+        '</div>' +
+        '<h3><a href="/pergunta.html?id=' + d.id + '">' + window.esc(d.titulo) + '</a></h3>' +
+        '<div class="destaque-resposta">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+        '<img src="' + window.imgUrl(d.resposta_autor_avatar) + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover">' +
+        '<strong style="font-size:0.85rem">' + window.esc(d.resposta_autor_nome) + '</strong>' +
+        '<span class="destaque-badge"><i class="fas fa-check"></i> Melhor resposta</span>' +
+        '</div>' +
+        '<p>' + window.esc((d.resposta_conteudo || '').substring(0, 200)) + '...</p>' +
+        '</div>' +
+        '<a href="/pergunta.html?id=' + d.id + '" style="font-size:0.85rem;font-weight:600">Ler mais <i class="fas fa-arrow-right"></i></a>' +
+        '</div></div>';
+    }).join('');
+  });
+
+  // Categorias
+  window.go('GET', '/categorias', null, function(r) {
+    if (!r || r.length === 0) return;
+    document.getElementById('categoryGrid').innerHTML = r.map(function(c) {
+      return '<a href="/perguntas.html?categoria=' + c.id + '" class="category-card">' +
+        '<div class="cat-icon"><i class="fas fa-' + (c.icone || 'question-circle') + '"></i></div>' +
+        '<div class="cat-name">' + window.esc(c.nome) + '</div>' +
+        '<div class="cat-count">' + (c.total_perguntas || 0) + ' perguntas</div>' +
+        '</a>';
+    }).join('');
+  });
+
+  // Perguntas Recentes
+  window.go('GET', '/perguntas?limite=5', null, function(r) {
+    if (!r || !r.perguntas || r.perguntas.length === 0) {
+      document.getElementById('recentQuestions').innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><h3>Nenhuma pergunta ainda</h3><p>Seja o primeiro a perguntar!</p></div>';
+      return;
+    }
+    document.getElementById('recentQuestions').innerHTML = r.perguntas.map(function(p) {
+      var statusClass = 'status-' + (p.status || 'aberta');
+      var statusLabel = p.status === 'resolvida' ? 'Resolvida' : p.status === 'fechada' ? 'Fechada' : 'Aberta';
+      return '<div class="question-card">' +
+        '<div class="question-card-header">' +
+        '<h3><a href="/pergunta.html?id=' + p.id + '">' + window.esc(p.titulo) + '</a></h3>' +
+        '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+        '</div>' +
+        '<div class="question-card-desc">' + window.esc((p.descricao || '').substring(0, 200)) + '</div>' +
+        '<div class="question-card-footer">' +
+        '<span><i class="fas fa-user"></i> ' + window.esc(p.autor_nome || 'Anônimo') + '</span>' +
+        '<span>' + window.fmtDate(p.created_at) + '</span>' +
+        '<div class="question-stats">' +
+        '<span><i class="fas fa-reply"></i> ' + p.total_respostas + '</span>' +
+        '<span><i class="fas fa-eye"></i> ' + (p.visualizacoes || 0) + '</span>' +
+        '</div></div></div>';
+    }).join('');
+  });
+}
+
+carregarHome();
+</script>
+</body>
+</html>

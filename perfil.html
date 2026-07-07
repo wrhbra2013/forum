@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Perfil - Fórum Respostas</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="container" style="max-width:800px">
+  <div id="perfilContainer"><div class="loading"><i class="fas fa-spinner"></i><p>Carregando...</p></div></div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+var usuario = window.getUsuario();
+var token = window.getToken();
+var params = new URLSearchParams(window.location.search);
+var perfilId = params.get('id') || (usuario ? usuario.id : null);
+
+if (!perfilId) {
+  document.getElementById('perfilContainer').innerHTML = '<div class="empty-state"><i class="fas fa-user"></i><h3>Usuário não encontrado</h3></div>';
+} else {
+  carregarPerfil();
+}
+
+function carregarPerfil() {
+  window.go('GET', '/auth/usuario?id=' + perfilId, null, function(r) {
+    if (!r || r.error) {
+      document.getElementById('perfilContainer').innerHTML = '<div class="empty-state"><i class="fas fa-user"></i><h3>Usuário não encontrado</h3></div>';
+      return;
+    }
+    document.title = r.nome + ' - Fórum Respostas';
+
+    var ehMeu = token && usuario && usuario.id == r.id;
+
+    document.getElementById('perfilContainer').innerHTML =
+      '<div class="profile-header">' +
+      '<img src="' + window.imgUrl(r.avatar) + '" alt="" class="profile-avatar" id="profileAvatar">' +
+      '<div class="profile-name">' + window.esc(r.nome) + '</div>' +
+      (r.reputacao ? '<div class="profile-rep"><i class="fas fa-star"></i> ' + r.reputacao + ' pontos de reputação</div>' : '') +
+      (r.bio ? '<div class="profile-bio">' + window.esc(r.bio) + '</div>' : '') +
+      '<div style="color:var(--text-light);font-size:0.85rem;margin-top:8px">Membro desde ' + new Date(r.created_at).toLocaleDateString('pt-BR') + '</div>' +
+      (ehMeu ? '<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="editarPerfil()"><i class="fas fa-edit"></i> Editar Perfil</button></div>' : '') +
+      '</div>' +
+      '<div id="minhasPerguntas"><div class="loading"><i class="fas fa-spinner"></i><p>Carregando perguntas...</p></div></div>';
+
+    // Se for meu perfil, mostrar minhas perguntas
+    if (ehMeu) {
+      carregarMinhasPerguntas();
+    }
+  });
+}
+
+function carregarMinhasPerguntas() {
+  window.go('GET', '/perguntas?usuario_id=' + perfilId + '&limite=50', null, function(r) {
+    if (!r || !r.perguntas || r.perguntas.length === 0) {
+      document.getElementById('minhasPerguntas').innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><h3>Nenhuma pergunta ainda</h3><a href="/nova-pergunta.html" class="btn btn-primary" style="margin-top:12px">Fazer Pergunta</a></div>';
+      return;
+    }
+    document.getElementById('minhasPerguntas').innerHTML =
+      '<h2 class="section-title" style="margin-top:24px"><i class="fas fa-question-circle"></i> Minhas Perguntas</h2>' +
+      r.perguntas.map(function(p) {
+        var statusClass = 'status-' + (p.status || 'aberta');
+        var statusLabel = p.status === 'resolvida' ? 'Resolvida' : p.status === 'fechada' ? 'Fechada' : 'Aberta';
+        return '<div class="question-card">' +
+          '<div class="question-card-header">' +
+          '<h3><a href="/pergunta.html?id=' + p.id + '">' + window.esc(p.titulo) + '</a></h3>' +
+          '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+          '</div>' +
+          '<div class="question-card-footer">' +
+          '<span>' + window.fmtDate(p.created_at) + '</span>' +
+          '<span><i class="fas fa-reply"></i> ' + (p.total_respostas || 0) + '</span>' +
+          '<span><i class="fas fa-eye"></i> ' + (p.visualizacoes || 0) + '</span>' +
+          '</div></div>';
+      }).join('');
+  });
+}
+
+function editarPerfil() {
+  var novoNome = prompt('Nome:', usuario.nome);
+  if (!novoNome || novoNome === usuario.nome) return;
+  window.go('PUT', '/auth/usuario', {
+    id: usuario.id,
+    nome: novoNome
+  }, function(r) {
+    if (r && r.id) {
+      usuario.nome = novoNome;
+      localStorage.setItem(window.APP_NAME + '_usuario', JSON.stringify(usuario));
+      window.notificar('Perfil atualizado!', 'success');
+      carregarPerfil();
+    } else {
+      window.notificar('Erro ao atualizar', 'error');
+    }
+  });
+}
+</script>
+</body>
+</html>

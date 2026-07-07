@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar - Fórum Respostas</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="auth-page">
+  <div class="auth-card">
+    <h2><i class="fas fa-comments" style="color:var(--primary)"></i> Entrar</h2>
+    <p class="subtitle">Acesse sua conta no Fórum Respostas</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="seu@email.com" required>
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" placeholder="Sua senha" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+    <div class="form-footer">
+      Não tem conta? <a href="/cadastro.html">Cadastre-se</a>
+    </div>
+  </div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+
+  window.go('POST', '/auth/login', {
+    email: document.getElementById('email').value,
+    senha: document.getElementById('senha').value
+  }, function(r, status) {
+    btn.disabled = false;
+    btn.innerHTML = 'Entrar';
+    if (r && r.success) {
+      localStorage.setItem(window.APP_NAME + '_token', r.token);
+      localStorage.setItem(window.APP_NAME + '_usuario', JSON.stringify(r.usuario));
+      localStorage.setItem(window.APP_NAME + '_session_expiry', r.session_expiry || (Date.now() + 86400000));
+      window.notificar('Login realizado com sucesso!', 'success');
+      setTimeout(function() { window.location.href = '/'; }, 500);
+    } else {
+      window.notificar(r && r.error ? r.error : 'Erro ao fazer login', 'error');
+    }
+  });
+});
+</script>
+</body>
+</html>

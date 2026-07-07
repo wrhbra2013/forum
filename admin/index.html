@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Fórum Respostas</title>
+<link rel="stylesheet" href="../static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="../static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="../components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="container">
+  <h1 class="section-title"><i class="fas fa-shield-alt"></i> Administração</h1>
+  <div class="content-with-sidebar">
+    <div>
+      <div class="filters-bar">
+        <select id="adminTabela" onchange="carregarAdmin()">
+          <option value="categorias">Categorias</option>
+          <option value="perguntas">Perguntas</option>
+          <option value="respostas">Respostas</option>
+          <option value="login">Usuários</option>
+        </select>
+        <button class="btn btn-accent" onclick="mostrarNovo()"><i class="fas fa-plus"></i> Novo</button>
+      </div>
+      <div id="adminContainer"><div class="loading"><i class="fas fa-spinner"></i><p>Carregando...</p></div></div>
+    </div>
+    <div>
+      <div class="sidebar-card">
+        <h4>Painel de Controle</h4>
+        <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:12px">Gerencie as categorias, perguntas, respostas e usuários do fórum.</p>
+        <a href="/" class="btn btn-outline btn-sm btn-block" style="margin-bottom:8px"><i class="fas fa-arrow-left"></i> Voltar ao site</a>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="../components/footer.js"><\/script>';</script>
+
+<script>
+var usuario = window.getUsuario();
+var token = window.getToken();
+var adminTabela = 'categorias';
+
+if (!token || !usuario || !usuario.admin) {
+  window.location.href = '/';
+}
+
+function carregarAdmin() {
+  adminTabela = document.getElementById('adminTabela').value;
+  document.getElementById('adminContainer').innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>Carregando...</p></div>';
+
+  window.go('GET', '/' + adminTabela, null, function(r) {
+    if (!r) return;
+    if (r.length === 0) {
+      document.getElementById('adminContainer').innerHTML = '<div class="empty-state"><i class="fas fa-database"></i><h3>Nenhum registro</h3></div>';
+      return;
+    }
+    var cols = Object.keys(r[0]).filter(function(k) { return k !== 'senha'; });
+    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.85rem">';
+    html += '<thead><tr>' + cols.map(function(c) { return '<th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);font-weight:700;text-transform:capitalize">' + c.replace(/_/g, ' ') + '</th>'; }).join('') + '<th style="padding:10px;border-bottom:2px solid var(--border)">Ações</th></tr></thead><tbody>';
+    html += r.map(function(row) {
+      return '<tr>' + cols.map(function(c) {
+        var val = row[c];
+        if (val === null || val === undefined) val = '';
+        val = String(val);
+        if (val.length > 50) val = val.substring(0, 50) + '...';
+        return '<td style="padding:8px 10px;border-bottom:1px solid var(--border)">' + window.esc(val) + '</td>';
+      }).join('') +
+      '<td style="padding:8px 10px;border-bottom:1px solid var(--border)">' +
+      '<button class="btn btn-outline btn-sm" onclick="editarRegistro(' + row.id + ')" style="margin-right:4px"><i class="fas fa-edit"></i></button>' +
+      '<button class="btn btn-outline btn-sm" style="border-color:#e74c3c;color:#e74c3c" onclick="excluirRegistro(' + row.id + ')"><i class="fas fa-trash"></i></button>' +
+      '</td></tr>';
+    }).join('');
+    html += '</tbody></table></div>';
+    document.getElementById('adminContainer').innerHTML = html;
+  });
+}
+
+function mostrarNovo() {
+  var nome = prompt('Nome:');
+  if (!nome) return;
+  var data = { nome: nome };
+  if (adminTabela === 'categorias') {
+    var desc = prompt('Descrição:');
+    var slug = prompt('Slug (url):', nome.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+    var icone = prompt('Ícone (FontAwesome sem fa-):', 'question-circle');
+    data.descricao = desc || '';
+    data.slug = slug || nome.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    data.icone = icone || 'question-circle';
+  }
+  window.go('POST', '/' + adminTabela, data, function(r) {
+    if (r && r.id) { window.notificar('Criado!', 'success'); carregarAdmin(); }
+    else { window.notificar('Erro', 'error'); }
+  });
+}
+
+function editarRegistro(id) {
+  var nome = prompt('Novo nome:');
+  if (!nome) return;
+  window.go('PUT', '/' + adminTabela + '/' + id, { nome: nome }, function(r) {
+    if (r && r.id) { window.notificar('Atualizado!', 'success'); carregarAdmin(); }
+    else { window.notificar('Erro', 'error'); }
+  });
+}
+
+function excluirRegistro(id) {
+  if (!confirm('Excluir este registro?')) return;
+  window.go('DELETE', '/' + adminTabela + '/' + id, null, function(r) {
+    if (r && r.success) { window.notificar('Excluído!', 'success'); carregarAdmin(); }
+    else { window.notificar('Erro', 'error'); }
+  });
+}
+
+carregarAdmin();
+</script>
+</body>
+</html>

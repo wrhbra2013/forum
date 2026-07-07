@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pergunta - Fórum Respostas</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="container">
+  <div id="perguntaContainer"><div class="loading"><i class="fas fa-spinner"></i><p>Carregando pergunta...</p></div></div>
+
+  <div class="answers-section" id="answersSection">
+    <div class="answers-count" id="answersCount"></div>
+    <div id="answersList"></div>
+  </div>
+
+  <div class="answer-form" id="answerForm">
+    <h3><i class="fas fa-reply"></i> Sua Resposta</h3>
+    <textarea id="respostaConteudo" placeholder="Escreva sua resposta aqui..."></textarea>
+    <button class="btn btn-primary" onclick="enviarResposta()"><i class="fas fa-paper-plane"></i> Enviar Resposta</button>
+  </div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+var perguntaId = new URLSearchParams(window.location.search).get('id');
+var usuario = window.getUsuario();
+var token = window.getToken();
+var perguntaData = null;
+
+if (!perguntaId) {
+  document.getElementById('perguntaContainer').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Pergunta não encontrada</h3></div>';
+} else {
+  carregarPergunta();
+}
+
+function carregarPergunta() {
+  window.go('GET', '/perguntas/' + perguntaId, null, function(r) {
+    if (!r || r.error) {
+      document.getElementById('perguntaContainer').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Pergunta não encontrada</h3></div>';
+      return;
+    }
+    perguntaData = r;
+    document.title = r.titulo + ' - Fórum Respostas';
+
+    var statusLabel = r.status === 'resolvida' ? 'Resolvida' : r.status === 'fechada' ? 'Fechada' : 'Aberta';
+    var statusClass = 'status-' + (r.status || 'aberta');
+
+    document.getElementById('perguntaContainer').innerHTML =
+      '<div class="question-detail">' +
+      '<div class="question-meta">' +
+      '<div class="author"><img src="' + window.imgUrl(r.autor_avatar) + '" alt=""> <a href="/perfil.html?id=' + r.usuario_id + '">' + window.esc(r.autor_nome) + '</a></div>' +
+      '<span><i class="fas fa-folder"></i> ' + window.esc(r.categoria_nome || 'Sem categoria') + '</span>' +
+      '<span><i class="fas fa-clock"></i> ' + window.fmtDate(r.created_at) + '</span>' +
+      '<span><i class="fas fa-eye"></i> ' + (r.visualizacoes || 0) + ' visualizações</span>' +
+      '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+      '</div>' +
+      '<h1>' + window.esc(r.titulo) + '</h1>' +
+      (r.tags ? '<div class="question-tags">' + r.tags.split(',').map(function(t) { return '<span class="tag">' + window.esc(t.trim()) + '</span>'; }).join('') + '</div>' : '') +
+      '<div class="question-body">' + window.esc(r.descricao) + '</div>' +
+      (token && usuario && usuario.id == r.usuario_id && r.status !== 'resolvida' && r.status !== 'fechada' ?
+        '<div class="question-actions"><button class="btn btn-outline btn-sm" onclick="fecharPergunta()"><i class="fas fa-lock"></i> Fechar Pergunta</button></div>' : '') +
+      '</div>';
+
+    carregarRespostas();
+  });
+}
+
+function carregarRespostas() {
+  window.go('GET', '/respostas/pergunta/' + perguntaId, null, function(r) {
+    if (!r) return;
+    document.getElementById('answersCount').textContent = r.length + ' Resposta' + (r.length !== 1 ? 's' : '');
+
+    if (r.length === 0) {
+      document.getElementById('answersList').innerHTML = '<div class="empty-state" style="padding:30px"><i class="fas fa-reply"></i><h3>Nenhuma resposta ainda</h3><p>Seja o primeiro a responder!</p></div>';
+      return;
+    }
+
+    document.getElementById('answersList').innerHTML = r.map(function(a) {
+      var bestClass = a.melhor_resposta ? ' best-answer' : '';
+      var bestBadge = a.melhor_resposta ? '<span class="best-answer-badge"><i class="fas fa-check"></i> Melhor Resposta</span>' : '';
+      var isAuthor = token && usuario && perguntaData && perguntaData.usuario_id == usuario.id;
+      var canChoose = isAuthor && perguntaData && perguntaData.status !== 'resolvida' && perguntaData.status !== 'fechada' && !a.melhor_resposta;
+
+      return '<div class="answer-card' + bestClass + '" id="answer-' + a.id + '">' +
+        '<div class="answer-header">' +
+        '<img src="' + window.imgUrl(a.autor_avatar) + '" alt="">' +
+        '<div><div class="author-name">' + window.esc(a.autor_nome) + (a.autor_reputacao ? ' <span style="font-size:0.8rem;color:#f39c12">★' + a.autor_reputacao + '</span>' : '') + '</div>' +
+        '<div class="answer-date">' + window.fmtDate(a.created_at) + '</div></div>' +
+        (bestBadge ? '<div style="margin-left:auto">' + bestBadge + '</div>' : '') +
+        '</div>' +
+        '<div class="answer-body">' + window.esc(a.conteudo) + '</div>' +
+        '<div class="answer-footer">' +
+        '<div class="vote-buttons">' +
+        '<button class="vote-btn" onclick="votar(' + a.id + ', \'up\')" id="vote-up-' + a.id + '"><i class="fas fa-thumbs-up"></i> <span id="vote-count-' + a.id + '">' + (a.votos || 0) + '</span></button>' +
+        '<button class="vote-btn" onclick="votar(' + a.id + ', \'down\')" id="vote-down-' + a.id + '"><i class="fas fa-thumbs-down"></i></button>' +
+        '</div>' +
+        (canChoose ? '<button class="btn-best-answer" onclick="escolherMelhorResposta(' + a.id + ')"><i class="fas fa-check"></i> Melhor Resposta</button>' : '') +
+        '<button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="toggleComentarios(' + a.id + ')"><i class="fas fa-comment"></i> Comentar</button>' +
+        '</div>' +
+        '<div class="comments-section" id="comments-' + a.id + '" style="display:none">' +
+        '<div id="comments-list-' + a.id + '"></div>' +
+        (token ? '<div class="comment-form"><input type="text" id="comment-input-' + a.id + '" placeholder="Escreva um comentário..."><button class="btn btn-primary btn-sm" onclick="enviarComentario(' + a.id + ')">Enviar</button></div>' : '') +
+        '</div></div>';
+    }).join('');
+
+    // Show/hide answer form
+    if (!token) {
+      document.getElementById('answerForm').innerHTML = '<div class="answer-form" style="text-align:center"><p>Faça <a href="/login.html">login</a> para responder.</p></div>';
+    } else if (perguntaData && perguntaData.status === 'fechada') {
+      document.getElementById('answerForm').innerHTML = '<div class="answer-form" style="text-align:center;color:var(--text-light)"><i class="fas fa-lock"></i> Esta pergunta está fechada para novas respostas.</div>';
+    } else if (perguntaData && perguntaData.status === 'resolvida') {
+      document.getElementById('answerForm').innerHTML = '<div class="answer-form" style="text-align:center;color:var(--text-light)"><i class="fas fa-check-circle" style="color:var(--accent)"></i> Esta pergunta já foi resolvida.</div>';
+    }
+  });
+}
+
+function enviarResposta() {
+  var conteudo = document.getElementById('respostaConteudo').value.trim();
+  if (!conteudo) { window.notificar('Escreva uma resposta', 'warning'); return; }
+
+  var btn = document.querySelector('#answerForm .btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+  window.go('POST', '/respostas', {
+    pergunta_id: parseInt(perguntaId),
+    usuario_id: usuario.id,
+    conteudo: conteudo
+  }, function(r, status) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Resposta';
+    if (r && r.id) {
+      document.getElementById('respostaConteudo').value = '';
+      window.notificar('Resposta enviada!', 'success');
+      carregarRespostas();
+    } else {
+      window.notificar('Erro ao enviar resposta', 'error');
+    }
+  });
+}
+
+function votar(respostaId, tipo) {
+  if (!token || !usuario) {
+    window.location.href = '/login.html';
+    return;
+  }
+  window.go('POST', '/respostas/' + respostaId + '/votar', {
+    usuario_id: usuario.id,
+    tipo: tipo
+  }, function(r) {
+    if (r && r.votos !== undefined) {
+      document.getElementById('vote-count-' + respostaId).textContent = r.votos;
+    }
+  });
+}
+
+function escolherMelhorResposta(respostaId) {
+  if (!confirm('Confirmar esta como a melhor resposta?')) return;
+  window.go('PUT', '/respostas/' + respostaId + '/melhor-resposta', {
+    usuario_id: usuario.id
+  }, function(r) {
+    if (r && r.id) {
+      window.notificar('Melhor resposta escolhida!', 'success');
+      carregarPergunta();
+    } else {
+      window.notificar('Erro ao escolher melhor resposta', 'error');
+    }
+  });
+}
+
+function fecharPergunta() {
+  if (!confirm('Fechar esta pergunta para novas respostas?')) return;
+  window.go('PUT', '/perguntas/' + perguntaId, {
+    status: 'fechada'
+  }, function(r) {
+    if (r && r.id) {
+      window.notificar('Pergunta fechada', 'success');
+      carregarPergunta();
+    }
+  });
+}
+
+function toggleComentarios(respostaId) {
+  var el = document.getElementById('comments-' + respostaId);
+  if (el.style.display === 'block') { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  carregarComentarios(respostaId);
+}
+
+function carregarComentarios(respostaId) {
+  window.go('GET', '/comentarios/resposta/' + respostaId, null, function(r) {
+    if (!r) return;
+    var list = document.getElementById('comments-list-' + respostaId);
+    if (r.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-light);font-size:0.85rem;padding:4px 0">Nenhum comentário ainda.</div>';
+      return;
+    }
+    list.innerHTML = r.map(function(c) {
+      return '<div class="comment"><img src="' + window.imgUrl(c.autor_avatar) + '" alt=""><div class="comment-body"><span class="comment-author">' + window.esc(c.autor_nome) + '</span> ' + window.esc(c.conteudo) + ' <span style="color:var(--text-light);font-size:0.8rem">' + window.fmtDate(c.created_at) + '</span></div></div>';
+    }).join('');
+  });
+}
+
+function enviarComentario(respostaId) {
+  var input = document.getElementById('comment-input-' + respostaId);
+  var texto = input.value.trim();
+  if (!texto) return;
+
+  window.go('POST', '/comentarios', {
+    resposta_id: respostaId,
+    usuario_id: usuario.id,
+    conteudo: texto
+  }, function(r) {
+    if (r && r.id) {
+      input.value = '';
+      carregarComentarios(respostaId);
+    } else {
+      window.notificar('Erro ao enviar comentário', 'error');
+    }
+  });
+}
+</script>
+</body>
+</html>

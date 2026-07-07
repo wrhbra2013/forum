@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: {{APP_NAME}}-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: {{DB_NAME}}
+      ADMIN_EMAIL: {{ADMIN_EMAIL}}
+      ADMIN_NOME: {{ADMIN_NOME}}
+      ADMIN_PASS: {{ADMIN_PASS}}
+    volumes:
+      - ${DATA_DIR}/pgdata:/var/lib/postgresql/data
+      - ./db/init/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/init/02-seed.sh:/docker-entrypoint-initdb.d/02-seed.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d {{DB_NAME}}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: {{APP_NAME}}-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-forum}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-{{DB_NAME}}}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-postgres}
+      API_TOKEN: ${API_TOKEN}
+      SITE_URL: ${SITE_URL:-https://www.projetosdinamicos.com.br}
+    volumes:
+      - ${DATA_DIR}/uploads:/app/uploads
+      - ${DATA_DIR}/backups:/app/backups
+    ports:
+      - "${PORT:-3005}:3000"

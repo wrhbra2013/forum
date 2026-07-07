@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Arquitetura — Fórum Respostas</title>
+<style>
+@page {
+  size: A4;
+  margin: 2.4cm 2cm 2.8cm 2cm;
+  @bottom-center {
+    content: counter(page);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 9pt;
+    color: #999;
+  }
+  @top-right {
+    content: "Fórum Respostas — Arquitetura";
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8pt;
+    color: #aaa;
+  }
+}
+@page :first {
+  margin: 0;
+  @bottom-center { content: none; }
+  @top-right { content: none; }
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary: #6c5ce7;
+  --primary-light: #a29bfe;
+  --accent: #00b894;
+  --text: #2d3436;
+  --text-light: #636e72;
+  --bg: #f8f9fa;
+  --border: #dfe6e9;
+}
+
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text);
+  line-height: 1.7;
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Cover ── */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary) 0%, #a29bfe 50%, var(--accent) 100%);
+  color: #fff;
+  text-align: center;
+  page-break-after: always;
+  padding: 40px;
+}
+.cover-logo {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+.cover h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+.cover-sub {
+  font-size: 1.2rem;
+  opacity: 0.85;
+  margin-bottom: 30px;
+  font-weight: 300;
+}
+.cover-meta {
+  font-size: 0.95rem;
+  opacity: 0.7;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 20px;
+  margin-top: 20px;
+  width: 60%;
+}
+
+/* ── TOC ── */
+.toc { page-break-after: always; padding: 40px 0; }
+.toc h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 24px; }
+.toc-list { list-style: none; padding: 0; }
+.toc-list li {
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--border);
+  font-size: 1rem;
+}
+.toc-list li a { color: var(--text); text-decoration: none; }
+.toc-list li a::after { content: leader(".") target-counter(attr(href), page); float: right; }
+.toc-list li a:hover { color: var(--primary); }
+.toc-list .toc-h2 { padding-left: 0; font-weight: 600; }
+.toc-list .toc-h3 { padding-left: 24px; font-size: 0.9rem; color: var(--text-light); }
+
+/* ── Content ── */
+.content { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+section { page-break-inside: avoid; margin-bottom: 40px; }
+h2 {
+  font-size: 1.6rem;
+  color: var(--primary);
+  margin: 40px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid var(--primary);
+}
+h3 {
+  font-size: 1.15rem;
+  margin: 24px 0 10px;
+  color: var(--text);
+}
+p { margin-bottom: 12px; color: #444; }
+code {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--primary);
+}
+pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 16px 20px;
+  border-radius: 10px;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+}
+pre .cmt { color: #6c7086; }
+pre .kw { color: #cba6f7; }
+pre .str { color: #a6e3a1; }
+pre .fn { color: #89b4fa; }
+pre .num { color: #fab387; }
+pre .var { color: #f38ba8; }
+
+/* ── Info box ── */
+.sbox {
+  background: var(--bg);
+  border-left: 4px solid var(--primary);
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+.sbox strong { color: var(--primary); }
+.sbox.green { border-left-color: var(--accent); }
+.sbox.green strong { color: var(--accent); }
+
+/* ── Entity grid ── */
+.entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.entity-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: #fff;
+}
+.entity-card h4 {
+  font-size: 0.95rem;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+.entity-card p { font-size: 0.8rem; color: var(--text-light); margin: 0; }
+.entity-card code { font-size: 0.75rem; }
+
+/* ── Architecture flow ── */
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.flow-step .step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.flow-step .step-body { flex: 1; }
+.flow-step .step-body h4 { font-size: 0.9rem; margin-bottom: 2px; }
+.flow-step .step-body p { font-size: 0.85rem; color: var(--text-light); margin: 0; }
+
+/* ── Route table ── */
+.route-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+.route-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.route-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.route-table tr:nth-child(even) td { background: var(--bg); }
+.route-table .method {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #fff;
+}
+.method-get { background: #0984e3; }
+.method-post { background: #00b894; }
+.method-put { background: #fdcb6e; color: #2d3436 !important; }
+.method-delete { background: #d63031; }
+
+/* ── ER diagram ── */
+.er-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+.er-table {
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #fff;
+  display: inline-block;
+  margin: 4px 0;
+}
+.er-table .er-name { font-weight: 700; color: var(--primary); }
+.er-table .er-pk { color: #d63031; }
+.er-table .er-fk { color: #0984e3; }
+.er-arrow { color: var(--text-light); text-align: center; }
+
+/* ── Stack badges ── */
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stack-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.stack-badge.node { background: #68a063; color: #fff; border-color: #68a063; }
+.stack-badge.postgres { background: #336791; color: #fff; border-color: #336791; }
+.stack-badge.docker { background: #2496ed; color: #fff; border-color: #2496ed; }
+.stack-badge.nginx { background: #009639; color: #fff; border-color: #009639; }
+.stack-badge.html { background: #e34f26; color: #fff; border-color: #e34f26; }
+.stack-badge.js { background: #f7df1e; color: #2d3436; border-color: #f7df1e; }
+
+/* ── Print ── */
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .cover { height: 100vh; }
+  section { page-break-inside: avoid; }
+  pre { page-break-inside: avoid; white-space: pre-wrap; word-break: break-word; }
+  .route-table { page-break-inside: avoid; }
+  .entity-grid { page-break-inside: avoid; }
+  .er-diagram { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+}
+
+@media (max-width: 600px) {
+  .cover h1 { font-size: 1.8rem; }
+  .entity-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ COVER ═══════════ -->
+<section class="cover">
+  <div class="cover-logo">💬</div>
+  <h1>Fórum Respostas</h1>
+  <p class="cover-sub">Documentação de Arquitetura do Projeto</p>
+  <p class="cover-meta">
+    Versão 1.0 &mdash; Julho 2026<br>
+    Stack: HTML/CSS/JS &middot; Node.js &middot; Express &middot; PostgreSQL 16 &middot; Docker<br>
+    <span style="font-size:0.85rem;opacity:0.6">www.projetosdinamicos.com.br</span>
+  </p>
+</section>
+
+<!-- ═══════════ TOC ═══════════ -->
+<section class="toc">
+  <div class="content">
+    <h2>Índice</h2>
+    <ol class="toc-list">
+      <li class="toc-h2"><a href="#s1">1. Visão Geral</a></li>
+      <li class="toc-h2"><a href="#s2">2. Estrutura do Projeto</a></li>
+      <li class="toc-h3"><a href="#s2.1">2.1 Diretórios Versionados</a></li>
+      <li class="toc-h3"><a href="#s2.2">2.2 Artefatos Gerados (install_forum.sh)</a></li>
+      <li class="toc-h2"><a href="#s3">3. Stack Tecnológica</a></li>
+      <li class="toc-h2"><a href="#s4">4. Frontend</a></li>
+      <li class="toc-h3"><a href="#s4.1">4.1 Páginas</a></li>
+      <li class="toc-h3"><a href="#s4.2">4.2 Componentes Compartilhados</a></li>
+      <li class="toc-h3"><a href="#s4.3">4.3 api.js &mdash; Cliente HTTP</a></li>
+      <li class="toc-h3"><a href="#s4.4">4.4 Folha de Estilo</a></li>
+      <li class="toc-h2"><a href="#s5">5. Backend (API Express)</a></li>
+      <li class="toc-h3"><a href="#s5.1">5.1 Middleware</a></li>
+      <li class="toc-h3"><a href="#s5.2">5.2 Rotas da API</a></li>
+      <li class="toc-h2"><a href="#s6">6. Banco de Dados</a></li>
+      <li class="toc-h3"><a href="#s6.1">6.1 Schema &mdash; 7 Tabelas</a></li>
+      <li class="toc-h3"><a href="#s6.2">6.2 Diagrama Entidade-Relacionamento</a></li>
+      <li class="toc-h2"><a href="#s7">7. Fluxos de Negócio</a></li>
+      <li class="toc-h3"><a href="#s7.1">7.1 Autenticação</a></li>
+      <li class="toc-h3"><a href="#s7.2">7.2 Melhor Resposta (Moderação)</a></li>
+      <li class="toc-h3"><a href="#s7.3">7.3 Votação (Toggle)</a></li>
+      <li class="toc-h3"><a href="#s7.4">7.4 Destaques por Categoria</a></li>
+      <li class="toc-h2"><a href="#s8">8. Implantação</a></li>
+      <li class="toc-h3"><a href="#s8.1">8.1 Docker Compose</a></li>
+      <li class="toc-h3"><a href="#s8.2">8.2 Nginx Reverse Proxy</a></li>
+      <li class="toc-h3"><a href="#s8.3">8.3 Script install_forum.sh</a></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ═══════════ 1. VISÃO GERAL ═══════════ -->
+<section id="s1">
+  <div class="content">
+    <h2>1. Visão Geral</h2>
+    <p>
+      O <strong>Fórum Respostas</strong> é uma plataforma colaborativa de perguntas e respostas
+      inspirada no Yahoo! Respostas. Usuários podem criar perguntas em categorias temáticas,
+      responder, votar em respostas e comentar. O autor da pergunta tem o poder de eleger a
+      <strong>melhor resposta</strong>, que destaca a pergunta na página inicial e concede
+      reputação ao autor da resposta.
+    </p>
+    <div class="sbox">
+      <strong>📌 Arquitetura resumida:</strong> Frontend estático (HTML+CSS+JS) consome uma
+      API REST Node.js/Express que persiste em PostgreSQL 16. Tudo roda em containers Docker
+      orquestrados por Docker Compose, com Nginx como proxy reverso.
+    </div>
+    <div class="stack">
+      <span class="stack-badge html">HTML5</span>
+      <span class="stack-badge js">JavaScript (Vanilla)</span>
+      <span class="stack-badge node">Node.js 20</span>
+      <span class="stack-badge postgres">PostgreSQL 16</span>
+      <span class="stack-badge docker">Docker</span>
+      <span class="stack-badge nginx">Nginx</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 2. ESTRUTURA DO PROJETO ═══════════ -->
+<section id="s2">
+  <div class="content">
+    <h2>2. Estrutura do Projeto</h2>
+
+    <h3 id="s2.1">2.1 Diretórios Versionados (repositório)</h3>
+    <pre>
+forum/
+├── .gitignore
+├── install_forum.sh          # Script de instalação (1065 linhas)
+├── index.html                # Página inicial (hero + stats + destaques + categorias)
+├── perguntas.html            # Lista de perguntas com filtros e paginação
+├── pergunta.html             # Detalhe da pergunta + respostas + comentários
+├── nova-pergunta.html        # Formulário de nova pergunta
+├── categorias.html           # Grade de categorias
+├── cadastro.html             # Cadastro de usuário
+├── login.html                # Login
+├── perfil.html               # Perfil do usuário
+├── minhas-perguntas.html     # Perguntas do usuário logado
+├── termos.html               # Termos de uso
+├── privacidade.html          # Política de privacidade
+├── admin/
+│   └── index.html            # CRUD administrativo
+├── components/
+│   ├── header.js             # Header com search + user menu
+│   └── footer.js             # Footer institucional
+├── static/
+│   ├── css/default.css       # Estilos globais (892 linhas)
+│   ├── js/api.js             # Cliente HTTP + helpers
+│   └── img/avatar-default.svg
+└── templates/
+    └── docker-compose.yml    # Template de orquestração</pre>
+
+    <h3 id="s2.2">2.2 Artefatos Gerados em Tempo de Instalação</h3>
+    <p>O script <code>install_forum.sh</code> gera dinamicamente em <code>/var/www/forum/</code>:</p>
+    <pre>
+/var/www/forum/
+├── docker-compose.yml        # Orquestração final (com variáveis expandidas)
+├── .env                      # Variáveis de ambiente (token, senhas, URLs)
+├── api/
+│   ├── Dockerfile            # Node 20-alpine
+│   ├── package.json          # express, pg, cors, dotenv
+│   └── src/server.js         # Servidor Express (~740 linhas)
+├── db/
+│   └── init/
+│       ├── 01-schema.sql     # DDL das 7 tabelas
+│       └── 02-seed.sh        # Admin + 10 categorias + settings
+├── pgdata/                   # Volume persistente do PostgreSQL
+├── uploads/                  # Uploads de avatar/imagens
+├── backups/                  # Backup automático
+└── static/js/api_token.js    # Token público do cliente</pre>
+    <div class="sbox green">
+      <strong>⚡ Design híbrido:</strong> O repositório contém apenas o "projeto fonte".
+      A cada <code>install</code> ou <code>reset</code>, todo o backend é regenerado com
+      credenciais e token únicos, garantindo instalações isoladas e reproduzíveis.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 3. STACK TECNOLÓGICA ═══════════ -->
+<section id="s3">
+  <div class="content">
+    <h2>3. Stack Tecnológica</h2>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>🌐 Frontend</h4>
+        <p>HTML5 semântico · CSS3 (Grid, Flexbox, Custom Properties, Animations) · JavaScript Vanilla (ES5/ES6+) · Font Awesome 6 · Google Fonts (Inter)</p>
+      </div>
+      <div class="entity-card">
+        <h4>⚙️ Backend</h4>
+        <p>Node.js 20 · Express 4 · pg (node-postgres) · cors · dotenv · Auto-criação de tabelas e colunas via <code>information_schema</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>🗄️ Banco</h4>
+        <p>PostgreSQL 16 Alpine · 7 tabelas · UNIQUE constraints · Chaves estrangeiras · ON DELETE CASCADE · TIMESTAMP automáticos</p>
+      </div>
+      <div class="entity-card">
+        <h4>🐳 Infraestrutura</h4>
+        <p>Docker Compose · 2 serviços (db + api) · Healthcheck · Volume persistente · Nginx reverse proxy · API via subpath (/forum/)</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 4. FRONTEND ═══════════ -->
+<section id="s4">
+  <div class="content">
+    <h2>4. Frontend</h2>
+
+    <h3 id="s4.1">4.1 Páginas</h3>
+    <p>
+      O frontend é composto por <strong>11 páginas HTML estáticas</strong> mais uma página de
+      administração. Cada página carrega componentes de header e footer via JavaScript, e
+      consome a API através do cliente <code>api.js</code>.
+    </p>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>🏠 index.html</h4>
+        <p>Hero com CTA · Stats (perguntas, respostas, usuários, resolvidas) · Destaques por categoria · Grade de categorias · Perguntas recentes</p>
+      </div>
+      <div class="entity-card">
+        <h4>📋 perguntas.html</h4>
+        <p>Lista com filtros (categoria, status, busca textual) · Paginação · Query params na URL</p>
+      </div>
+      <div class="entity-card">
+        <h4>📄 pergunta.html</h4>
+        <p>Detalhe da pergunta · Respostas ordenadas (melhor primeiro) · Votação up/down · Comentários · Ações do autor (fechar, escolher melhor resposta)</p>
+      </div>
+      <div class="entity-card">
+        <h4>✏️ nova-pergunta.html</h4>
+        <p>Formulário com título, descrição, categoria (select), tags · Validação client-side</p>
+      </div>
+      <div class="entity-card">
+        <h4>🔑 login.html / cadastro.html</h4>
+        <p>Autenticação · Token armazenado em localStorage com expiry de 24h · Redirect após login</p>
+      </div>
+      <div class="entity-card">
+        <h4>👤 perfil.html</h4>
+        <p>Avatar, bio, reputação · Edição de perfil · Lista de perguntas do usuário</p>
+      </div>
+      <div class="entity-card">
+        <h4>📂 categorias.html</h4>
+        <p>Grade de todas as categorias com contagem de perguntas</p>
+      </div>
+      <div class="entity-card">
+        <h4>🛡️ admin/index.html</h4>
+        <p>CRUD genérico sobre qualquer tabela (categorias, perguntas, respostas, login) · Apenas admin · Tabela dinâmica com actions</p>
+      </div>
+    </div>
+
+    <h3 id="s4.2">4.2 Componentes Compartilhados</h3>
+    <p>
+      Cada página inclui os componentes via <code>innerHTML</code> com script tag
+      (técnica síncrona que funciona em todos os browsers):
+    </p>
+    <pre>
+&lt;div id="header-placeholder"&gt;&lt;/div&gt;
+&lt;script&gt;
+  document.getElementById('header-placeholder').innerHTML =
+    '&lt;script src="components/header.js"&gt;&lt;\/script&gt;';
+&lt;/script&gt;</pre>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>📌 header.js</h4>
+        <p>Header fixo (sticky) · Logo + search com autocomplete · Nav links · User menu com dropdown (avatar, nome, perfil, sair) · Botões de auth condicionais · <strong>Barra de progresso</strong> nas requisições</p>
+      </div>
+      <div class="entity-card">
+        <h4>📌 footer.js</h4>
+        <p>Footer escuro com 4 colunas (marca, navegação, conta, legal) · Links institucionais</p>
+      </div>
+    </div>
+
+    <h3 id="s4.3">4.3 api.js &mdash; Cliente HTTP</h3>
+    <p>
+      O arquivo <code>static/js/api.js</code> é o coração da comunicação com o backend.
+      Expõe no <code>window</code> todas as funções necessárias:
+    </p>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>🔐 Autenticação</h4>
+        <p><code>getToken()</code> · <code>getUsuario()</code> · <code>rmToken()</code> — lê/remove do localStorage, com verificação de expiry (24h)</p>
+      </div>
+      <div class="entity-card">
+        <h4>🌐 Requisições</h4>
+        <p><code>go(method, endpoint, data, cb)</code> — XHR wrapper com token Bearer, auto-parse JSON, tratamento 401, <strong>barra de progresso</strong></p>
+      </div>
+      <div class="entity-card">
+        <h4>🛠️ Helpers</h4>
+        <p><code>esc(s)</code> (escape HTML) · <code>fmtDate(d)</code> (relativo: "agora", "5min", "3d", data pt-BR) · <code>imgUrl(url)</code> · <code>notificar(msg, tipo)</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>🎬 Page Enter</h4>
+        <p><code>pageEnter()</code> adiciona classe fade-in no <code>.main-content</code> via <code>DOMContentLoaded</code></p>
+      </div>
+    </div>
+
+    <h3 id="s4.4">4.4 Folha de Estilo</h3>
+    <p>
+      Um único arquivo <code>default.css</code> (~892 linhas) cobre todo o sistema visual:
+    </p>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>🎨 Design System</h4>
+        <p>Variáveis CSS (cores, sombras, raios) · Fonte Inter via Google Fonts · Sistema de grid (container 1200px) · Token de espaçamento consistente</p>
+      </div>
+      <div class="entity-card">
+        <h4>🧩 Componentes</h4>
+        <p>Header · Cards (pergunta, categoria, destaque) · Botões (primary, outline, accent, ghost) · Formulários · Paginação · Tabela admin</p>
+      </div>
+      <div class="entity-card">
+        <h4>✨ Animações</h4>
+        <p><code>pageFadeIn</code> (fade + translateY) · <code>shimmer</code> (skeleton loading) · <code>spin</code> (spinner) · <code>slideIn</code> (notificação) · Suporte a <code>prefers-reduced-motion</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>📱 Responsivo</h4>
+        <p>Breakpoint 768px (header, hero, grids, formulários) · Breakpoint 900px (sidebar) · Layouts adaptativos com auto-fill/minmax</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 5. BACKEND ═══════════ -->
+<section id="s5">
+  <div class="content">
+    <h2>5. Backend (API Express)</h2>
+    <p>
+      Servidor Node.js gerado dinamicamente em <code>api/src/server.js</code> (~740 linhas).
+      Conecta ao PostgreSQL via <code>pg.Pool</code> e expõe uma API RESTful.
+    </p>
+
+    <h3 id="s5.1">5.1 Middleware</h3>
+    <div class="flow-step">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <h4>JSON Parser</h4>
+        <p><code>express.json({ limit: '50mb' })</code> + urlencoded — suporta payloads grandes (uploads)</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <h4>CORS</h4>
+        <p>Origins configuráveis via <code>SITE_URL</code> + domínios fixos (projetosdinamicos.com.br, api.*). Métodos: GET, POST, PUT, DELETE, OPTIONS</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <h4>Autenticação Bearer</h4>
+        <p>Valida <code>Authorization: Bearer &lt;token&gt;</code> em todas as rotas exceto GET, HEAD, /health e /auth/*. Token único comparado com <code>API_TOKEN</code> da env</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <h4>Auto-migration</h4>
+        <p><code>tabelaExiste()</code> + <code>garantirTabela()</code> + <code>garantirColunas()</code> — cria tabelas e colunas dinamicamente via <code>information_schema</code>. Permite schema flexível sem migrations</p>
+      </div>
+    </div>
+
+    <h3 id="s5.2">5.2 Rotas da API</h3>
+    <table class="route-table">
+      <thead>
+        <tr><th>Método</th><th>Rota</th><th>Descrição</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/health</code></td><td>Healthcheck com status do banco</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/auth/login</code></td><td>Login por email+senha → token + usuário</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/auth/cadastro</code></td><td>Registro (nome, email, senha) → token + usuário</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/auth/usuario</code></td><td>Dados do usuário por ID (query)</td></tr>
+        <tr><td><span class="method method-put">PUT</span></td><td><code>/auth/usuario</code></td><td>Atualizar nome, avatar, bio</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/categorias</code></td><td>Listar categorias com total de perguntas</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/perguntas</code></td><td>Listar perguntas (filtros: categoria, status, busca, paginação)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/perguntas/:id</code></td><td>Detalhe da pergunta (autor, categoria) + incrementa view</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/perguntas</code></td><td>Criar pergunta</td></tr>
+        <tr><td><span class="method method-put">PUT</span></td><td><code>/perguntas/:id</code></td><td>Atualizar pergunta (fechar, editar)</td></tr>
+        <tr><td><span class="method method-delete">DELETE</span></td><td><code>/perguntas/:id</code></td><td>Excluir pergunta + respostas em cascata</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/respostas/pergunta/:id</code></td><td>Listar respostas (melhor primeiro, votos DESC)</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/respostas</code></td><td>Criar resposta</td></tr>
+        <tr><td><span class="method method-put">PUT</span></td><td><code>/respostas/:id/melhor-resposta</code></td><td>Marcar melhor resposta (autor da pergunta apenas)</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/respostas/:id/votar</code></td><td>Votar up/down (toggle se mesmo tipo)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/votos/resposta/:id</code></td><td>Ver votos de uma resposta</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/comentarios/resposta/:id</code></td><td>Listar comentários de uma resposta</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/comentarios</code></td><td>Criar comentário</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/dashboard</code></td><td>Dashboard completo (stats, destaques, top usuários)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/search?q=</code></td><td>Busca textual em perguntas (LIKE %term%)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td><code>/:tabela</code></td><td>CRUD genérico — listar registros (admin)</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td><code>/:tabela</code></td><td>CRUD genérico — criar registro (admin)</td></tr>
+        <tr><td><span class="method method-put">PUT</span></td><td><code>/:tabela/:id</code></td><td>CRUD genérico — atualizar registro (admin)</td></tr>
+        <tr><td><span class="method method-delete">DELETE</span></td><td><code>/:tabela/:id</code></td><td>CRUD genérico — excluir registro (admin)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════ 6. BANCO DE DADOS ═══════════ -->
+<section id="s6">
+  <div class="content">
+    <h2>6. Banco de Dados</h2>
+
+    <h3 id="s6.1">6.1 Schema &mdash; 7 Tabelas</h3>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>⚙️ settings</h4>
+        <p><code>chave PK</code> · <code>valor</code> — Configurações chave-valor (site_nome, admin_email)</p>
+      </div>
+      <div class="entity-card">
+        <h4>👤 login</h4>
+        <p><code>id PK</code> · <code>nome</code> · <code>email UNIQUE</code> · <code>senha</code> · <code>admin</code> · <code>avatar</code> · <code>bio</code> · <code>reputacao</code> · <code>created_at</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>📂 categorias</h4>
+        <p><code>id PK</code> · <code>nome</code> · <code>descricao</code> · <code>icone</code> · <code>slug UNIQUE</code> · <code>created_at</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>❓ perguntas</h4>
+        <p><code>id PK</code> · <code>titulo</code> · <code>descricao</code> · <code>categoria_id FK</code> · <code>usuario_id FK</code> · <code>status</code> · <code>tags</code> · <code>visualizacoes</code> · <code>created_at</code> · <code>atualizado_em</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>💬 respostas</h4>
+        <p><code>id PK</code> · <code>pergunta_id FK CASCADE</code> · <code>usuario_id FK</code> · <code>conteudo</code> · <code>melhor_resposta</code> · <code>votos</code> · <code>created_at</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>💭 comentarios</h4>
+        <p><code>id PK</code> · <code>resposta_id FK CASCADE</code> · <code>usuario_id FK</code> · <code>conteudo</code> · <code>created_at</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>👍 votos</h4>
+        <p><code>id PK</code> · <code>usuario_id FK</code> · <code>resposta_id FK CASCADE</code> · <code>tipo</code> · <code>UNIQUE(usuario_id, resposta_id)</code></p>
+      </div>
+    </div>
+
+    <h3 id="s6.2">6.2 Diagrama Entidade-Relacionamento</h3>
+    <div class="er-diagram">
+      <div class="er-table">
+        <span class="er-name">login</span><br>
+        <span class="er-pk">PK</span> id<br>
+        nome, email <span class="er-pk">UNIQUE</span>, senha, admin, avatar, bio, reputacao, created_at
+      </div>
+      <div class="er-arrow">│ 1 │◄───║ N │</div>
+      <div class="er-table">
+        <span class="er-name">perguntas</span><br>
+        <span class="er-pk">PK</span> id<br>
+        titulo, descricao, tags, status, visualizacoes<br>
+        <span class="er-fk">FK</span> usuario_id → login.id<br>
+        <span class="er-fk">FK</span> categoria_id → categorias.id
+      </div>
+      <div class="er-arrow">│ 1 │◄───║ N │</div>
+      <div class="er-table">
+        <span class="er-name">respostas</span><br>
+        <span class="er-pk">PK</span> id<br>
+        conteudo, melhor_resposta, votos<br>
+        <span class="er-fk">FK</span> pergunta_id → perguntas.id <span class="er-pk">CASCADE</span><br>
+        <span class="er-fk">FK</span> usuario_id → login.id
+      </div>
+      <div class="er-arrow">│ 1 │◄───║ N │</div>
+      <div class="er-table">
+        <span class="er-name">comentarios</span><br>
+        <span class="er-pk">PK</span> id<br>
+        conteudo<br>
+        <span class="er-fk">FK</span> resposta_id → respostas.id <span class="er-pk">CASCADE</span><br>
+        <span class="er-fk">FK</span> usuario_id → login.id
+      </div>
+      <div style="height:8px"></div>
+      <div class="er-table">
+        <span class="er-name">votos</span><br>
+        <span class="er-pk">PK</span> id<br>
+        tipo (up/down)<br>
+        <span class="er-fk">FK</span> usuario_id → login.id<br>
+        <span class="er-fk">FK</span> resposta_id → respostas.id <span class="er-pk">CASCADE</span><br>
+        <span class="er-pk">UNIQUE</span>(usuario_id, resposta_id)
+      </div>
+      <div style="height:8px"></div>
+      <div class="er-table">
+        <span class="er-name">categorias</span><br>
+        <span class="er-pk">PK</span> id<br>
+        nome, descricao, icone, slug <span class="er-pk">UNIQUE</span>
+      </div>
+      <div class="er-table">
+        <span class="er-name">settings</span><br>
+        <span class="er-pk">PK</span> chave<br>
+        valor
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 7. FLUXOS DE NEGÓCIO ═══════════ -->
+<section id="s7">
+  <div class="content">
+    <h2>7. Fluxos de Negócio</h2>
+
+    <h3 id="s7.1">7.1 Autenticação</h3>
+    <div class="flow-step">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <h4>Login / Cadastro</h4>
+        <p>Usuário envia email+senha para <code>/auth/login</code> ou <code>/auth/cadastro</code>. Servidor valida no banco e retorna <code>{ token, usuario, session_expiry }</code></p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <h4>Armazenamento local</h4>
+        <p>O frontend salva em <code>localStorage</code> com prefixo do <code>APP_NAME</code> ("forum_token", "forum_usuario", "forum_session_expiry")</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <h4>Requisições autenticadas</h4>
+        <p><code>api.js</code> anexa <code>Authorization: Bearer &lt;token&gt;</code> em toda requisição. Se o servidor retornar 401, o token é removido automaticamente</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <h4>Expiração</h4>
+        <p><code>session_expiry</code> guarda <code>Date.now() + 86400000</code> (24h). <code>getToken()</code> verifica se expirou e limpa o storage automaticamente</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">5</span>
+      <div class="step-body">
+        <h4>Admin</h4>
+        <p>Usuários com flag <code>admin = true</code> têm acesso à página <code>/admin/</code>. O frontend redireciona se <code>usuario.admin</code> for falso</p>
+      </div>
+    </div>
+
+    <h3 id="s7.2">7.2 Melhor Resposta (Moderação)</h3>
+    <div class="flow-step">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <h4>Autor escolhe</h4>
+        <p>Na página da pergunta, se o usuário logado é o autor e a pergunta está "aberta", um botão "Melhor Resposta" aparece em cada resposta</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <h4>Validação no servidor</h4>
+        <p><code>PUT /respostas/:id/melhor-resposta</code> verifica se <code>req.body.usuario_id</code> é o dono da pergunta. Caso contrário, retorna 403</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <h4>Efeitos em cascata</h4>
+        <p>Ao marcar: (a) <code>melhor_resposta = false</code> em todas as respostas da pergunta; (b) <code>melhor_resposta = true</code> na escolhida; (c) status da pergunta → "resolvida"; (d) reputação do autor da resposta += 10</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <h4>Destaque na Home</h4>
+        <p>O dashboard retorna uma query <code>DISTINCT ON (categoria_id)</code> que seleciona uma pergunta resolvida por categoria (a com mais votos). Essas aparecem como "Destaques" na página inicial</p>
+      </div>
+    </div>
+
+    <h3 id="s7.3">7.3 Votação (Toggle)</h3>
+    <div class="flow-step">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <h4>Voto único por usuário</h4>
+        <p>A constraint <code>UNIQUE(usuario_id, resposta_id)</code> na tabela <code>votos</code> garante que cada usuário vote apenas uma vez por resposta</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <h4>Toggle inteligente</h4>
+        <p><code>POST /respostas/:id/votar</code> implementa três cenários: (a) mesmo tipo → remove voto (downvote); (b) tipo diferente → troca voto (delta = 2); (c) novo voto → insere (delta = ±1). O campo <code>respostas.votos</code> é atualizado atomicamente</p>
+      </div>
+    </div>
+
+    <h3 id="s7.4">7.4 Destaques por Categoria</h3>
+    <p>
+      O endpoint <code>GET /dashboard</code> executa uma consulta que:
+    </p>
+    <pre>
+SELECT DISTINCT ON (p.categoria_id)
+    p.id, p.titulo, p.categoria_id, p.created_at,
+    c.nome as categoria_nome, c.icone as categoria_icone,
+    l.nome as autor_nome, l.avatar as autor_avatar,
+    r.id as resposta_id, r.conteudo as resposta_conteudo,
+    la.nome as resposta_autor_nome, la.avatar as resposta_autor_avatar
+FROM perguntas p
+INNER JOIN respostas r ON r.pergunta_id = p.id AND r.melhor_resposta = true
+LEFT JOIN categorias c ON c.id = p.categoria_id
+LEFT JOIN login l ON l.id = p.usuario_id
+LEFT JOIN login la ON la.id = r.usuario_id
+WHERE p.status = 'resolvida'
+ORDER BY p.categoria_id, r.votos DESC</pre>
+    <div class="sbox green">
+      <strong>💡 Lógica:</strong> Para cada categoria, uma pergunta resolvida com melhor resposta
+      aparece em destaque. Se houver múltiplas, a com mais votos vence. Isso incentiva respostas
+      de qualidade e mantém a página inicial sempre atualizada com conteúdo relevante.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 8. IMPLANTAÇÃO ═══════════ -->
+<section id="s8">
+  <div class="content">
+    <h2>8. Implantação</h2>
+
+    <h3 id="s8.1">8.1 Docker Compose</h3>
+    <p>Dois serviços definidos no <code>docker-compose.yml</code> gerado:</p>
+    <pre>
+<span class="kw">services</span>:
+  <span class="fn">db</span>:
+    image: postgres:16-alpine
+    container_name: forum-db
+    <span class="cmt"># healthcheck com pg_isready</span>
+    volumes:
+      - ./db/init/01-schema.sql:/docker-entrypoint-initdb.d/
+      - ./db/init/02-seed.sh:/docker-entrypoint-initdb.d/
+      - ./pgdata:/var/lib/postgresql/data
+
+  <span class="fn">api</span>:
+    build: ./api
+    container_name: forum-api
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DB_HOST: db
+      API_TOKEN: <span class="str">"${API_TOKEN}"</span>
+    ports:
+      - <span class="str">"3005:3000"</span></pre>
+
+    <h3 id="s8.2">8.2 Nginx Reverse Proxy</h3>
+    <p>
+      A API é exposta publicamente via subpath <code>/forum/</code> no domínio
+      <code>api.projetosdinamicos.com.br</code>. O script cria um snippet
+      <code>/etc/nginx/forum-locations.conf</code>:
+    </p>
+    <pre>
+location /forum/ {
+    rewrite ^/forum/(.*) /$1 break;
+    proxy_pass http://127.0.0.1:3005/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}</pre>
+
+    <h3 id="s8.3">8.3 Script install_forum.sh</h3>
+    <p>O script centraliza todo o ciclo de vida do projeto:</p>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <h4>▶️ install</h4>
+        <p>Cria diretórios, gera todos os artefatos (server.js, schema, seed, Dockerfile, .env, api_token.js), constrói containers com <code>docker compose up -d --build</code>, configura Nginx</p>
+      </div>
+      <div class="entity-card">
+        <h4>🗑️ uninstall</h4>
+        <p>Derruba containers, remove <code>/var/www/forum/</code> e o snippet do Nginx</p>
+      </div>
+      <div class="entity-card">
+        <h4>📋 logs</h4>
+        <p>Exibe as últimas 30 linhas do container <code>forum-api</code></p>
+      </div>
+      <div class="entity-card">
+        <h4>🔄 reset</h4>
+        <p>Remove volumes (<code>-v</code>) e dados (<code>pgdata/</code>), executa install novamente do zero</p>
+      </div>
+    </div>
+    <div class="sbox">
+      <strong>🔐 Segurança:</strong> A cada instalação um <code>API_TOKEN</code> de 64 caracteres
+      hex é gerado via <code>openssl rand -hex 32</code>. O token é injetado no <code>.env</code>
+      do servidor e no <code>static/js/api_token.js</code> do cliente. O repositório nunca
+      armazena tokens ou senhas reais.
+    </div>
+    <div class="sbox green">
+      <strong>📦 Uso:</strong> <code>sudo bash install_forum.sh install</code> — e o fórum
+      está no ar em segundos. Acesse a API em <code>https://api.projetosdinamicos.com.br/forum/</code>
+      e o frontend em <code>https://www.projetosdinamicos.com.br/forum/</code>.
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

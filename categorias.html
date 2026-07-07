@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Categorias - Fórum Respostas</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="container">
+  <h1 class="section-title"><i class="fas fa-th-large"></i> Categorias</h1>
+  <p style="color:var(--text-light);margin-bottom:24px">Navegue pelas categorias e encontre perguntas relacionadas ao seu interesse.</p>
+  <div class="category-grid" id="categoryGrid"></div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+window.go('GET', '/categorias', null, function(r) {
+  if (!r || r.length === 0) {
+    document.getElementById('categoryGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-folder-open"></i><h3>Nenhuma categoria</h3></div>';
+    return;
+  }
+  document.getElementById('categoryGrid').innerHTML = r.map(function(c) {
+    return '<a href="/perguntas.html?categoria=' + c.id + '" class="category-card">' +
+      '<div class="cat-icon"><i class="fas fa-' + (c.icone || 'question-circle') + '"></i></div>' +
+      '<div class="cat-name">' + window.esc(c.nome) + '</div>' +
+      '<div class="cat-count">' + (c.total_perguntas || 0) + ' perguntas (' + (c.perguntas_abertas || 0) + ' abertas)</div>' +
+      '</a>';
+  }).join('');
+});
+</script>
+</body>
+</html>

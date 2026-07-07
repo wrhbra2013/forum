@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perguntas - Fórum Respostas</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="container">
+  <h1 class="section-title"><i class="fas fa-question-circle"></i> Todas as Perguntas</h1>
+
+  <div class="filters-bar">
+    <select id="filterCategoria">
+      <option value="">Todas as Categorias</option>
+    </select>
+    <select id="filterStatus">
+      <option value="">Todos os Status</option>
+      <option value="aberta">Abertas</option>
+      <option value="resolvida">Resolvidas</option>
+      <option value="fechada">Fechadas</option>
+    </select>
+    <input type="text" id="filterBusca" placeholder="Buscar perguntas..." style="flex:1;min-width:150px">
+    <button class="btn btn-primary" onclick="carregarPerguntas()"><i class="fas fa-search"></i> Filtrar</button>
+  </div>
+
+  <div id="perguntasContainer"><div class="loading"><i class="fas fa-spinner"></i><p>Carregando...</p></div></div>
+
+  <div class="pagination" id="pagination"></div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+var paginaAtual = 1;
+
+function carregarPerguntas() {
+  var params = '?pagina=' + paginaAtual + '&limite=20';
+  var cat = document.getElementById('filterCategoria').value;
+  var status = document.getElementById('filterStatus').value;
+  var busca = document.getElementById('filterBusca').value.trim();
+  if (cat) params += '&categoria_id=' + cat;
+  if (status) params += '&status=' + status;
+  if (busca) params += '&busca=' + encodeURIComponent(busca);
+
+  document.getElementById('perguntasContainer').innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>Carregando...</p></div>';
+
+  window.go('GET', '/perguntas' + params, null, function(r) {
+    if (!r || !r.perguntas) {
+      document.getElementById('perguntasContainer').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Erro ao carregar</h3></div>';
+      return;
+    }
+    if (r.perguntas.length === 0) {
+      document.getElementById('perguntasContainer').innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><h3>Nenhuma pergunta encontrada</h3><p>Tente alterar os filtros ou faça uma nova pergunta!</p></div>';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+    document.getElementById('perguntasContainer').innerHTML = r.perguntas.map(function(p) {
+      var statusClass = 'status-' + (p.status || 'aberta');
+      var statusLabel = p.status === 'resolvida' ? 'Resolvida' : p.status === 'fechada' ? 'Fechada' : 'Aberta';
+      return '<div class="question-card">' +
+        '<div class="question-card-header">' +
+        '<h3><a href="/pergunta.html?id=' + p.id + '">' + window.esc(p.titulo) + '</a></h3>' +
+        '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+        '</div>' +
+        '<div class="question-card-desc">' + window.esc((p.descricao || '').substring(0, 200)) + '</div>' +
+        '<div class="question-card-footer">' +
+        '<span class="category-tag">' + window.esc(p.categoria_nome || 'Sem categoria') + '</span>' +
+        '<span><i class="fas fa-user"></i> ' + window.esc(p.autor_nome || 'Anônimo') + '</span>' +
+        '<span>' + window.fmtDate(p.created_at) + '</span>' +
+        '<div class="question-stats">' +
+        (p.tem_melhor_resposta ? '<span style="color:var(--accent)"><i class="fas fa-check-circle"></i> Resolvida</span>' : '') +
+        '<span><i class="fas fa-reply"></i> ' + p.total_respostas + '</span>' +
+        '<span><i class="fas fa-eye"></i> ' + (p.visualizacoes || 0) + '</span>' +
+        '</div></div></div>';
+    }).join('');
+
+    // Pagination
+    var pag = document.getElementById('pagination');
+    if (r.total_paginas <= 1) { pag.innerHTML = ''; return; }
+    var html = '';
+    for (var i = 1; i <= r.total_paginas; i++) {
+      html += '<button class="page-btn' + (i === paginaAtual ? ' active' : '') + '" onclick="paginaAtual=' + i + ';carregarPerguntas();window.scrollTo(0,0)">' + i + '</button>';
+    }
+    pag.innerHTML = html;
+  });
+}
+
+// Carregar categorias nos filtros
+window.go('GET', '/categorias', null, function(r) {
+  if (!r) return;
+  var sel = document.getElementById('filterCategoria');
+  r.forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    sel.appendChild(opt);
+  });
+  // Check URL params
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('categoria')) sel.value = params.get('categoria');
+  if (params.get('status')) document.getElementById('filterStatus').value = params.get('status');
+  if (params.get('busca')) document.getElementById('filterBusca').value = params.get('busca');
+  carregarPerguntas();
+});
+
+// Filtro com Enter
+document.getElementById('filterBusca').addEventListener('keyup', function(e) {
+  if (e.key === 'Enter') { paginaAtual = 1; carregarPerguntas(); }
+});
+</script>
+</body>
+</html>

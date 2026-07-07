@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Pergunta - Fórum Respostas</title>
+<link rel="stylesheet" href="static/css/default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="static/js/api.js"></script>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+<script>document.getElementById('header-placeholder').innerHTML = '<script src="components/header.js"><\/script>';</script>
+
+<main class="main-content">
+<div class="container" style="max-width:800px">
+  <h1 class="section-title"><i class="fas fa-pen"></i> Fazer uma Pergunta</h1>
+
+  <div class="auth-card" style="max-width:100%">
+    <form id="perguntaForm">
+      <div class="form-group">
+        <label for="titulo">Título da Pergunta</label>
+        <input type="text" id="titulo" placeholder="Ex: Como funciona o async/await em JavaScript?" required maxlength="200">
+      </div>
+      <div class="form-group">
+        <label for="categoria">Categoria</label>
+        <select id="categoria" required>
+          <option value="">Selecione uma categoria</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" placeholder="Descreva sua dúvida com o máximo de detalhes possível..." required style="min-height:200px"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="tags">Tags (separadas por vírgula)</label>
+        <input type="text" id="tags" placeholder="Ex: javascript, programação, async">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Publicar Pergunta</button>
+    </form>
+  </div>
+</div>
+</main>
+
+<div id="footer-placeholder"></div>
+<script>document.getElementById('footer-placeholder').innerHTML = '<script src="components/footer.js"><\/script>';</script>
+
+<script>
+var usuario = window.getUsuario();
+var token = window.getToken();
+
+if (!token || !usuario) {
+  window.location.href = '/login.html';
+}
+
+// Carregar categorias
+window.go('GET', '/categorias', null, function(r) {
+  if (!r) return;
+  var sel = document.getElementById('categoria');
+  r.forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    sel.appendChild(opt);
+  });
+});
+
+document.getElementById('perguntaForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publicando...';
+
+  window.go('POST', '/perguntas', {
+    titulo: document.getElementById('titulo').value.trim(),
+    descricao: document.getElementById('descricao').value.trim(),
+    categoria_id: parseInt(document.getElementById('categoria').value),
+    usuario_id: usuario.id,
+    tags: document.getElementById('tags').value.trim()
+  }, function(r, status) {
+    btn.disabled = false;
+    btn.innerHTML = 'Publicar Pergunta';
+    if (r && r.id) {
+      window.notificar('Pergunta publicada!', 'success');
+      window.location.href = '/pergunta.html?id=' + r.id;
+    } else {
+      window.notificar(r && r.error ? r.error : 'Erro ao publicar', 'error');
+    }
+  });
+});
+</script>
+</body>
+</html>
