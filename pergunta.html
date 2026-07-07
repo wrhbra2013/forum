@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pergunta - Fórum Respostas</title>
+<title>Pergunta - FORUMM</title>
 <link rel="stylesheet" href="static/css/default.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="static/js/api.js"></script>
@@ -52,7 +52,7 @@ function carregarPergunta() {
       return;
     }
     perguntaData = r;
-    document.title = r.titulo + ' - Fórum Respostas';
+    document.title = r.titulo + ' - FORUMM';
 
     var statusLabel = r.status === 'resolvida' ? 'Resolvida' : r.status === 'fechada' ? 'Fechada' : 'Aberta';
     var statusClass = 'status-' + (r.status || 'aberta');
