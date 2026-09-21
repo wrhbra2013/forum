@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minhas Perguntas - FORUMM</title>
+<title>Minhas Perguntas - +chat inteligência coletiva</title>
 <link rel="stylesheet" href="static/css/default.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="static/js/api.js"></script>
@@ -28,7 +28,7 @@ var usuario = window.getUsuario();
 var token = window.getToken();
 
 if (!token || !usuario) {
-  window.location.href = '/login.html';
+  window.location.href = '/login.html?redirect=minhas-perguntas.html';
 }
 
 window.go('GET', '/perguntas?usuario_id=' + usuario.id + '&limite=50', null, function(r) {

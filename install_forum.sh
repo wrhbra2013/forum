@@ -2,7 +2,7 @@
 set -eu
 
 # ==============================================================
-# Script de instalação — API FORUMM (Docker)
+# Script de instalação — API +chat inteligência coletiva (Docker)
 # Uso: sudo bash install_forum.sh [install|uninstall|logs|reset]
 # ==============================================================
 
@@ -26,7 +26,7 @@ SITE_URL="https://www.projetosdinamicos.com.br"
 API_URL="https://api.projetosdinamicos.com.br"
 
 install_flow() {
-  info "==== Instalação da API FORUMM ===="
+  info "==== Instalação da API +chat inteligência coletiva ===="
 
   mkdir -p "$DATA_DIR/api/src" "$DATA_DIR/db/init" "$DATA_DIR"/{pgdata,uploads,backups}
 
@@ -956,8 +956,8 @@ psql -v ON_ERROR_STOP=1 --username "\$POSTGRES_USER" --dbname "\$POSTGRES_DB" <<
     ON CONFLICT (slug) DO NOTHING;
 
     INSERT INTO settings (chave, valor) VALUES
-    ('site_nome', 'FORUMM'),
-    ('site_descricao', 'Comunidade colaborativa FORUMM'),
+    ('site_nome', '+chat inteligência coletiva'),
+    ('site_descricao', 'Comunidade colaborativa +chat inteligência coletiva'),
     ('admin_email', '${ADMIN_EMAIL}')
     ON CONFLICT (chave) DO NOTHING;
 EOSQL

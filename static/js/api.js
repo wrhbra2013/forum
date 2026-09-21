@@ -1,6 +1,7 @@
 window.API_BASE = 'https://api.projetosdinamicos.com.br/forum';
 window.SITE_URL = 'https://www.projetosdinamicos.com.br';
 window.APP_NAME = 'forum';
+window.MP_DOACAO = 'https://mpago.la/COLE_SEU_LINK_DOACAO_AQUI';
 
 window.getToken = function() {
   var tk = localStorage.getItem(window.APP_NAME + '_token');
@@ -102,7 +103,7 @@ window.fmtDate = function(d) {
 };
 
 window.imgUrl = function(url) {
-  if (!url) return window.SITE_URL + '/static/img/avatar-default.png';
+  if (!url) return window.SITE_URL + '/static/img/avatar-default.svg';
   if (url.startsWith('http')) return url;
   return window.API_BASE + '/uploads/' + url;
 };

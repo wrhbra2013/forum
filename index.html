@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FORUMM - Comunidade Colaborativa</title>
+<title>+chat inteligência coletiva - Comunidade Colaborativa</title>
 <link rel="stylesheet" href="static/css/default.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="static/js/api.js"></script>
@@ -17,7 +17,7 @@
 
 <section class="hero">
   <div class="container">
-    <h1>FORUMM — Tire suas dúvidas, compartilhe conhecimento</h1>
+    <h1>+chat inteligência coletiva — Tire suas dúvidas, compartilhe conhecimento</h1>
     <p>Comunidade colaborativa onde você pergunta, responde e ajuda outros usuários. A melhor resposta é destacada por categoria!</p>
     <div class="hero-buttons">
       <a href="/nova-pergunta.html" class="btn btn-white"><i class="fas fa-pen"></i> Fazer uma Pergunta</a>
@@ -56,9 +56,10 @@
 
 <script>
 function carregarHome() {
-  // Stats
   window.go('GET', '/dashboard', null, function(r) {
     if (!r) return;
+
+    // Stats
     var bar = document.getElementById('statsBar');
     bar.innerHTML = [
       { icon: 'question-circle', label: 'Perguntas', value: r.total_perguntas },
@@ -68,11 +69,9 @@ function carregarHome() {
     ].map(function(s) {
       return '<div class="stat-card"><div class="stat-icon"><i class="fas fa-' + s.icon + '"></i></div><div class="stat-number">' + s.value + '</div><div class="stat-label">' + s.label + '</div></div>';
     }).join('');
-  });
 
-  // Destaques
-  window.go('GET', '/dashboard', null, function(r) {
-    if (!r || !r.destaques || r.destaques.length === 0) {
+    // Destaques
+    if (!r.destaques || r.destaques.length === 0) {
       document.getElementById('destaquesGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-star"></i><h3>Nenhum destaque ainda</h3><p>Quando uma pergunta tiver uma melhor resposta escolhida, ela aparecerá aqui.</p></div>';
       return;
     }

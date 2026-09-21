@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro - FORUMM</title>
+<title>Cadastro - +chat inteligência coletiva</title>
 <link rel="stylesheet" href="static/css/default.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="static/js/api.js"></script>
@@ -26,7 +26,7 @@
         <rect x="185" y="240" width="70" height="8" rx="4" fill="rgba(255,255,255,0.3)"/>
       </svg>
     </div>
-    <h2 style="font-weight:800;letter-spacing:1px">FORUMM</h2>
+    <h2 style="font-weight:800;letter-spacing:1px">+chat inteligência coletiva</h2>
     <p class="subtitle">Criar sua conta</p>
     <form id="cadastroForm">
       <div class="form-group">
@@ -56,6 +56,7 @@
 <script>
 document.getElementById('cadastroForm').addEventListener('submit', function(e) {
   e.preventDefault();
+  var redirect = new URLSearchParams(window.location.search).get('redirect');
   var btn = this.querySelector('button[type="submit"]');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
@@ -72,7 +73,7 @@ document.getElementById('cadastroForm').addEventListener('submit', function(e) {
       localStorage.setItem(window.APP_NAME + '_usuario', JSON.stringify(r.usuario));
       localStorage.setItem(window.APP_NAME + '_session_expiry', r.session_expiry || (Date.now() + 86400000));
       window.notificar('Conta criada com sucesso!', 'success');
-      setTimeout(function() { window.location.href = '/'; }, 500);
+      setTimeout(function() { window.location.href = redirect || '/'; }, 500);
     } else {
       window.notificar(r && r.error ? r.error : 'Erro ao cadastrar', 'error');
     }

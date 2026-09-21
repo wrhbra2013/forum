@@ -31,7 +31,7 @@ document.currentScript.insertAdjacentHTML('afterend', `
               <rect x="250" y="190" width="75" height="7" rx="3.5" fill="rgba(255,255,255,0.5)"/>
               <rect x="250" y="207" width="55" height="7" rx="3.5" fill="rgba(255,255,255,0.35)"/>
             </svg>
-            <span class="logo-text">FORUMM</span>
+            <span class="logo-text">+chat inteligência coletiva</span>
           </span>
         </a>
       </div>
@@ -55,6 +55,7 @@ document.currentScript.insertAdjacentHTML('afterend', `
           <div class="user-dropdown" id="userDropdown">
             <a href="/perfil.html"><i class="fas fa-user"></i> Meu Perfil</a>
             <a href="/minhas-perguntas.html"><i class="fas fa-question"></i> Minhas Perguntas</a>
+            <a href="/admin/" id="linkAdmin" style="display:none"><i class="fas fa-shield-alt"></i> Painel Admin</a>
             <a href="#" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</a>
           </div>
         </div>
@@ -85,8 +86,9 @@ document.currentScript.insertAdjacentHTML('afterend', `
   if (token && u) {
     userMenu.style.display = 'flex';
     authButtons.style.display = 'none';
+    if (u.admin) document.getElementById('linkAdmin').style.display = 'block';
     document.getElementById('userName').textContent = u.nome || u.usuario;
-    document.getElementById('userAvatar').src = u.avatar ? window.imgUrl(u.avatar) : window.SITE_URL + '/static/img/avatar-default.png';
+    document.getElementById('userAvatar').src = window.imgUrl(u.avatar);
   }
 
   // Search

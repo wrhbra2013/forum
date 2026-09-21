@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pergunta - FORUMM</title>
+<title>Pergunta - +chat inteligência coletiva</title>
 <link rel="stylesheet" href="static/css/default.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="static/js/api.js"></script>
@@ -52,7 +52,7 @@ function carregarPergunta() {
       return;
     }
     perguntaData = r;
-    document.title = r.titulo + ' - FORUMM';
+    document.title = r.titulo + ' - +chat inteligência coletiva';
 
     var statusLabel = r.status === 'resolvida' ? 'Resolvida' : r.status === 'fechada' ? 'Fechada' : 'Aberta';
     var statusClass = 'status-' + (r.status || 'aberta');
@@ -117,7 +117,8 @@ function carregarRespostas() {
 
     // Show/hide answer form
     if (!token) {
-      document.getElementById('answerForm').innerHTML = '<div class="answer-form" style="text-align:center"><p>Faça <a href="/login.html">login</a> para responder.</p></div>';
+      var loginUrl = '/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+      document.getElementById('answerForm').innerHTML = '<div class="answer-form" style="text-align:center"><p>Faça <a href="' + loginUrl + '">login</a> para responder.</p></div>';
     } else if (perguntaData && perguntaData.status === 'fechada') {
       document.getElementById('answerForm').innerHTML = '<div class="answer-form" style="text-align:center;color:var(--text-light)"><i class="fas fa-lock"></i> Esta pergunta está fechada para novas respostas.</div>';
     } else if (perguntaData && perguntaData.status === 'resolvida') {
@@ -153,7 +154,7 @@ function enviarResposta() {
 
 function votar(respostaId, tipo) {
   if (!token || !usuario) {
-    window.location.href = '/login.html';
+    window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
     return;
   }
   window.go('POST', '/respostas/' + respostaId + '/votar', {
